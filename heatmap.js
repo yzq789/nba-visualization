@@ -1,3 +1,9 @@
+var court_width = "658px";
+var court_height = "385px";
+var margin = {top: 30, right: 20, bottom: 30, left: 40};
+var width = 644;
+var height = 366;
+
 function showheatmap(state, playerId, blockSize) {
     d3.selectAll("svg > *").remove();
     if (state === 1) {
@@ -7,23 +13,55 @@ function showheatmap(state, playerId, blockSize) {
         $("#explain").text("off-ball");
         my_points = defensive_points[playerId];
     }
-    var svg = d3.select("#main_panel").append("svg")
-        .attr("id", "east")
-        .attr("width", 600)
-        .attr("height", 400);
+    // var svg = d3.select("#main_panel").append("svg")
+    //     .attr("id", "east")
+    //     .attr("width", 600)
+    //     .attr("height", 400);
 
-    margin = {top: 50, right: 20, bottom: 30, left: 40},
-        width = +svg.attr("width") - margin.left - margin.right,
-        height = +svg.attr("height") - margin.top - margin.bottom,
-        g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    d3.select("#main_panel").append("div").attr("id", "speed-wrap-div").style("position", "relative");
+    d3.select("#speed-wrap-div").append("img")
+        .style("position", "absolute")
+        .attr("id", "speed-court-img")
+        .attr("src", "./court.png")
+        .style("width", court_width)
+        .style("height", court_height)
+        .style("opacity", "0.5")
+        // .style("left", "20px");
 
-    g.append("line")
-        .attr("x1", -10)
-        .attr("y1", -10)
-        .attr("x2", width - margin.right)
-        .attr("y2", -10)
-        .style("stroke", "red")
-        .style("stroke-width", "6px");
+
+    d3.select("#speed-wrap-div").append("div")
+        .style("position", "absolute")
+        .style("width", court_width)
+        .style("height", court_height)
+        .style("left", 0)
+        .style("top", 0)
+        .style("opacity", "1")
+        .style("background", "#E3E6E6")
+        .style("z-index", "-100");
+
+
+    var svg = d3.select("#speed-wrap-div").append("svg")
+        .attr("class", "speed-svg")
+        .style("position", "absolute")
+        .style("width", 640 + 50)
+        .style("height", 360 + 60)
+        .style("left", -33)
+        .style("top", -22);
+
+
+    //     width = +svg.attr("width") - margin.left - margin.right,
+    //     height = +svg.attr("height") - margin.top - margin.bottom,
+    g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    // width = svg.attr("width");
+    // height = svg.attr("height");
+
+    // g.append("line")
+    //     .attr("x1", -10)
+    //     .attr("y1", -10)
+    //     .attr("x2", width - margin.right)
+    //     .attr("y2", -10)
+    //     .style("stroke", "red")
+    //     .style("stroke-width", "6px");
 
     x_scales = width / 94.0;
     y_scales = height / 50.0;
