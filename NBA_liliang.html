@@ -42,13 +42,48 @@
     .shot-chart-court-hoop, .shot-chart-court-backboard {
         z-index: 100
     }
+
+    #team-selector-div{
+        margin: 18px;
+    }
+
+    #player-selector-div{
+        margin: 18px;
+    }
+
+    #scale-div{
+        margin: 18px;
+    }
+    
+    #nav-mother-fucker-bootstrap, .dropdown-menu{
+        background: rgb(51, 122, 183);
+    }
+
+    #nav-mother-fucker-bootstrap a{
+        color: white;
+    }
+
+    .panel-heading{
+        padding: 14px;
+    }
+
+    #fucker-wrapper-div{
+        margin-top: 40px;
+    }
+
+    #explain{
+        font-size: 20px;
+        margin-top: -5px;
+        margin-bottom: 15px;
+    }
+
 </style>
 <body>
-<div class="container">
+<div class="container" id="fucker-wrapper-div">
     <div class="row">
         <div class="col-md-4 column">
             <div class="row">
-                <div class="panel panel-default">
+                <div class="panel panel-primary">
                     <div class="panel-heading">
                         <h3 class="panel-title">球员信息</h3>
                     </div>
@@ -60,7 +95,7 @@
         </div>
         <div class="col-md-8 column">
             <div class="row">
-                <nav class="navbar navbar-default">
+                <nav class="navbar navbar-default" id="nav-mother-fucker-bootstrap">
                     <div class="container">
 
                         <div id="navbar" class="navbar-collapse collapse">
@@ -242,7 +277,9 @@
 
         }
 
-        teamDiv = d3.select("#player_info").append("div");
+        teamDiv = d3.select("#player_info").append("div")
+            .attr("class", "styled-select blue semi-square")
+            .attr("id", "team-selector-div");
         teamDiv.append("text")
             .attr("class", "valueText")
             .style("position", "relative")
@@ -271,7 +308,7 @@
             .attr("value", -1)
             .text("all");
 
-        playerDiv = d3.select("#player_info").append("div");
+        playerDiv = d3.select("#player_info").append("div").attr("class", "styled-select blue semi-square").attr("id", "player-selector-div");
         playerDiv.append("text")
             .attr("class", "valueText")
             .style("width", "50px")
@@ -287,7 +324,7 @@
                 updatePlayer();
             }, false);
 
-        scaleDiv = d3.select("#player_info").append("div");
+        scaleDiv = d3.select("#player_info").append("div").attr("id", "scale-div");
         scaleDiv.append("text")
             .attr("class", "valueText")
             .style("position", "relative")
