@@ -1,0 +1,630 @@
+﻿<html>  
+  <head>  
+        <meta charset="utf-8">  
+        <title>NBA</title>  
+  </head> 
+  <style>
+	.province {
+		stroke: black;
+		stroke-width: 1px;
+	}
+
+	.valueText {
+		font-family: arial;
+		font-size: 12px;
+		text-anchor: middle;
+	}
+
+	.shot-chart-court *{
+	    fill:transparent;
+	    stroke:#333;
+	    stroke-width:0.1
+	}
+	.shot-chart-court-ft-circle-bottom{
+	    stroke-dasharray:1.5, 1
+	}
+	.shot-chart-court-hoop,.shot-chart-court-backboard{
+	    z-index:100
+	}
+	.shot-chart-title{
+	    font-size:15%;
+	    text-transform:uppercase
+	}
+	.legend text{
+	    font-size:4%
+	}
+
+	#speed-court-img {
+		position: absolute;
+		z-index: -99;
+	}
+
+	#acc-court-img {
+		position: absolute;
+		z-index: -99;
+	}
+
+  </style>
+<body>
+
+<script src="./d3.v3.min.js" charset="utf-8"></script>
+<script src="./topojson.v1.min.js" charset="utf-8"></script>
+
+
+<script>
+
+var width = 2000;
+var height = 500;
+var courtwidth = 50;
+var courtlength = 94;
+
+var shift = 10;
+var blockSize = 1;
+var left = 300;
+var up = 0;
+var courtUp = 100;
+
+var currentTeamIndex = 0;
+var currentPlayerIndex= 0;
+
+d3.json("data.json", function(error, valuedata){
+	if(error){  
+        console.log(error);  
+    }
+    console.log("valuedata");
+    console.log(valuedata);
+
+    playerInfos = valuedata.players;
+    console.log("playerInfos");
+    console.log(playerInfos);
+
+    var teams = valuedata.teams;
+    playerInfos = valuedata.players;
+    for(i = 0;i < teams.length;i++){
+    	players = teams[i].players;
+    	for(j = 0;j < players.length;j++){
+    		id = players[j];
+    		for(k = 0;k < playerInfos.length;k++){
+    			if(id == playerInfos[k].id){
+    				players[j] = playerInfos[k];
+    				break;
+    			}
+    		}
+    	}
+    }
+    console.log("teams");
+    console.log(teams);
+
+    players = teams[currentPlayerIndex].players;
+
+    var shots = valuedata.shots;
+    for(i = 0;i < shots.length;i++){
+		x = shots[i].x;
+		shots[i].x = Math.abs(x - courtlength/2);
+
+		if(shots[i].x > courtlength/2){
+			y = shots[i].y;
+			shots[i].y = courtwidth - y; 
+		}
+
+		t = shots[i].x;
+		shots[i].x = shots[i].y;
+		shots[i].y = t;
+	}
+	console.log("shots");
+    console.log(shots);
+
+    points = [];
+
+    var svg = d3.select("body").append("svg")
+		.attr("width", width)
+		.attr("height", height);
+
+    var updateShots = function(shots, player, team){
+    	points.splice(0, points.length);
+    	// player = undefined;
+    	// team = undefined;
+    	if(player == undefined){
+    		if(team == undefined){
+    			for(var i = 0;i < shots.length;i++){
+    				points.push(shots[i]);
+    			}
+    		}else{
+    			for(var i = 0;i < shots.length;i++){
+    				if(shots[i].team == team){
+    					points.push(shots[i]);
+    				}
+    			}
+    		}
+    	}else{
+    		for(var i = 0;i < shots.length;i++){
+				if(shots[i].id == player.id){
+					points.push(shots[i]);
+				}
+			}
+    	}
+
+    	console.log("points");
+    	console.log(points);
+    };
+
+
+    var updateTeam = function(){
+    	if(currentTeamIndex == -1){
+    		players = teams[0].players;
+    		for(i = 1;i < teams.length;i++)
+    			players = players.concat(teams[i].players);
+    	} else {
+    		players = teams[currentTeamIndex].players;
+    	}
+    	d3.select("#players").selectAll("option").remove();
+
+	    playerSelect.selectAll("option")
+	    	.data(players)
+	    	.enter()
+	    	.append("option")
+	    	.attr("value", function(d,i){
+				return i;
+			})
+			.text(function(d){
+				return d.firstName + " " + d.lastName;
+			});
+		playerSelect.append("option")
+			.attr("value", -1)
+			.text("all");
+
+		updatePlayer(players);
+    };
+
+    var updatePlayerInfo = function(player){
+    	if(player == undefined){
+    		d3.select("#photo").attr('src', function(){
+	    		path = 'photo/all.png';
+	    		return path;
+	    	});
+
+	    	d3.select("#name").text(function(){
+	    		return "all";
+	    	});
+	    	d3.select("#position").text("");
+	    	d3.select("#height").text("");
+	    	d3.select("#weight").text("");
+	    	return;
+    	}
+
+    	d3.select("#photo").attr('src', function(){
+    		path = 'photo/' + player.id + ".png";
+    		return path;
+    	});
+
+    	d3.select("#name").text(function(){
+    		return "#" + player.number + " " + player.firstName + " " + player.lastName;
+    	});
+    	d3.select("#position").text(function(){
+    		return player.position;
+    	});
+    	d3.select("#height").text(function(){
+    		return (player.height / 10) + " feet";
+    	});
+    	d3.select("#weight").text(function(){
+    		return player.weight + " pound";
+    	});
+    }
+
+    var updatePlayer = function(){
+    	if(currentTeamIndex == -1){
+    		team = undefined;
+    		players = teams[0].players;
+    		for(i = 1;i < teams.length;i++)
+    			players = players.concat(teams[i].players);
+    	} else {
+    		a = ["a", "h"];
+    		team = a[currentTeamIndex];
+    		players = teams[currentTeamIndex].players;
+    	}
+    	if(currentPlayerIndex == -1)player = undefined;
+    	else player = players[currentPlayerIndex];
+    	updatePlayerInfo(player);
+    	updateShots(shots, player, team);
+    	updateBlocks();
+    	updateSpeedAndAcceleration(player.id);
+    }
+
+    var updateBlocks = function(){
+		svg.select("#blocks").remove();
+
+    	blockXNum = parseInt(courtwidth / blockSize);
+    	blockYNum = parseInt(courtlength / 2 / blockSize);
+    	blocks = new Array();
+    	for(i = 0;i <= blockYNum;i++){
+    		blocks.push(new Array());
+    		for(j = 0;j <= blockXNum;j++){
+    			block = [0,0];
+    			blocks[i].push(block);
+    		}
+    	}
+    	for(i = 0;i < points.length;i++){
+    		point = points[i];
+    		x = parseInt(point.x / blockSize);
+    		y = parseInt(point.y / blockSize);
+    		blocks[y][x][0] += 1;
+    		if(point.score)
+    			blocks[y][x][1] += 1;
+    	}
+
+		blockList = []
+		for(i = 0;i <= blockYNum;i++){
+    		for(j = 0;j <= blockXNum;j++){
+    			if(blocks[i][j][0] == 0)continue;
+
+    			block = blocks[i][j];
+    			block.x = j * blockSize + blockSize/2;
+    			block.y = i * blockSize + blockSize/2;
+    			block.rate = block[1] / block[0];
+    			blockList.push(block);
+    		}
+    	}
+    	console.log("blockList");
+    	console.log(blockList);
+    	if(blockList.length == 0)return;
+
+    	//定义命中率颜色函数
+		var maxRate = blockList[0].rate;
+		var minRate = blockList[0].rate;
+		for(i = 0; i < blockList.length; i++){
+			rate = blockList[i].rate;
+			if(maxRate < rate)maxRate = rate;
+			if(minRate > rate)minRate = rate;
+		}
+
+		var linearRate = d3.scale.linear()
+						.domain([minRate, maxRate])
+						.range([0, 1]);
+
+		var maxColor = d3.rgb(255,0,0); //橙色
+		var minColor = d3.rgb(255,255,0); //黄色
+		var computeRateColor = d3.interpolate(maxColor, minColor);
+
+		//定义投球数大小函数
+		var maxNum = blockList[0][0];
+		var minNum = blockList[0][0];
+		for(i = 0; i < blockList.length; i++){
+			num = blockList[i][0];
+			if(maxNum < num)maxNum = num;
+			if(minNum > num)minNum = num;
+		}
+		var linearNum = d3.scale.linear()
+						.domain([minNum, maxNum])
+						.range([1, 5]);
+
+		//画点
+		gb = svg.append("g").attr("id", "blocks");
+	    gb.selectAll("circle")
+	        .data(blockList)
+	        .enter()
+	        .append("circle")
+	        .attr("cx",function(d,i){
+	            return d.x * shift + left;
+	        })
+	        .attr("cy",function(d,i){
+	            return d.y * shift + up;
+	        })
+	        .attr("fill",function(d,i){
+        		var t = linearRate(d.rate);
+				var color = computeRateColor(t);
+				return color.toString();
+			})
+	        .attr("r",function(d){
+	        	return blockSize * linearNum(d[0]) * 2;
+	        });
+    };
+
+	d3.select("body").append("text")
+		.attr("class","valueText")
+		.style("position", "absolute")
+    	.style("left", "10px")
+    	.style("width", "50px")
+		.text("team:");
+    var teamSelect = d3.select("body").append("select")
+    	.attr("id", "teams")
+    	.style("position", "absolute")
+    	.style("left", "50px")
+    	.style("width", "100px")
+    	.attr("name", "teams")
+    	.on('change',function(){
+				currentTeamIndex = this.value;
+				updateTeam();
+			},false);
+
+    teamSelect.selectAll("option")
+    	.data(teams)
+    	.enter()
+    	.append("option")
+    	.attr("value", function(d,i){
+			return i;
+		})
+		.text(function(d){
+			return d.name;
+		});
+	teamSelect.append("option")
+		.attr("value", -1)
+		.text("all");
+
+	d3.select("body").append("text")
+		.attr("class","valueText")
+		.style("position", "absolute")
+    	.style("left", "160px")
+    	.style("width", "50px")
+		.text("player:");
+	var playerSelect = d3.select("body").append("select")
+    	.attr("id", "players")
+    	.style("position", "absolute")
+    	.style("left", "200px")
+    	.style("width", "100px")
+    	.attr("name", "players")
+    	.on('change',function(){
+				currentPlayerIndex = this.value;
+				updatePlayer();
+			},false);
+
+    d3.select("body").append("text")
+		.attr("class","valueText")
+		.style("position", "absolute")
+    	.style("left", "310px")
+    	.style("width", "50px")
+		.text("scale:");
+    d3.select("body").append("input")
+    	.attr('type', 'range')
+    	.attr('min', '1')
+    	.attr('max', '5')
+    	.attr('step', '1')
+    	.attr('value', '1')
+    	.attr('id', 'blockSizeInput')
+    	.style("position", "absolute")
+    	.style("left", "350px")
+    	.style("width", "100px")
+        .on("change",function(d,i){
+            blockSize = this.value;
+            updateBlocks();
+        });
+
+  //   d3.select("body").append("img")
+  //   	.attr("id", "court")
+  //   	.attr("src", "court.jpg")
+		// .attr("width", "260")
+		// .attr("height", "190")
+		// .style("position", "absolute")
+  //   	.style("left", "500px")
+  //   	.style("top", "300px");
+
+    player = players[currentPlayerIndex];
+    d3.select("body").append("img")
+		.attr("id", "photo")
+		.attr("width", "260")
+		.attr("height", "190")
+		.style("position", "absolute")
+    	.style("left", "10px")
+    	.style("top", "50px");
+
+    d3.select("body").append("text")
+    	.attr("class","valueText")
+    	.attr("id", "name")
+		.style("position", "absolute")
+    	.style("left", "100px")
+    	.style("top", "260px");
+    d3.select("body").append("text")
+    	.attr("class","valueText")
+    	.attr("id", "position")
+		.style("position", "absolute")
+    	.style("left", "100px")
+    	.style("top", "280px");
+    d3.select("body").append("text")
+    	.attr("class","valueText")
+    	.attr("id", "height")
+		.style("position", "absolute")
+    	.style("left", "100px")
+    	.style("top", "300px");
+    d3.select("body").append("text")
+    	.attr("class","valueText")
+    	.attr("id", "weight")
+		.style("position", "absolute")
+    	.style("left", "100px")
+    	.style("top", "320px");
+
+	updateTeam();
+	updatePlayer();
+
+    opts = {
+	    // basketball hoop diameter (ft)
+	    basketDiameter: 1.5,
+	    // distance from baseline to backboard (ft)
+	    basketProtrusionLength: 4,
+	    // backboard width (ft)
+	    basketWidth: 6,
+	    // title of hexagon color legend
+	    colorLegendTitle: 'Efficiency',
+	    // label for starting of hexagon color range
+	    colorLegendStartLabel: '< avg',
+	    // label for ending of hexagon color range
+	    colorLegendEndLabel: '> avg',
+	    // full length of basketball court (ft)
+	    courtLength: 94,
+	    // full width of basketball court (ft)
+	    courtWidth: 50,
+	    // distance from baseline to free throw line (ft)
+	    freeThrowLineLength: 19,
+	    // radius of free throw line circle (ft)
+	    freeThrowCircleRadius: 6,
+	    // d3 scale for hexagon colors
+	    heatScale: d3.scale.quantize()
+	      .domain([0, 1])
+	      .range(['#5458A2', '#6689BB', '#FADC97', '#F08460', '#B02B48']),
+	    // height of svg
+	    height: undefined,
+	    // method of aggregating points into a bin
+	    hexagonBin: function (point, bin) {
+	      var attempts = point.attempts || 1;
+	      var made = +point.made || 0;
+	      bin.attempts = (bin.attempts || 0) + attempts;
+	      bin.made = (bin.made || 0) + made;
+	    },
+	    // how many points does a bin need to be visualized
+	    hexagonBinVisibleThreshold: 1,
+	    // method to determine value to be used with specified heatScale
+	    hexagonFillValue: function(d) {  return d.made/d.attempts; },
+	    // bin size with regards to courth width/height (ft)
+	    hexagonRadius: .75,
+	    // discrete hexagon size values that radius value is mapped to
+	    hexagonRadiusSizes: [0, .4, .6, .75],
+	    // how many points in a bin to consider it while building radius scale
+	    hexagonRadiusThreshold: 2,
+	    // method to determine radius value to be used in radius scale
+	    hexagonRadiusValue: function (d) { return d.attempts; },
+	    // width of key marks (dashes on side of the paint) (ft)
+	    keyMarkWidth: .5,
+	    // width the key (paint) (ft)
+	    keyWidth: 16,
+	    // radius of restricted circle (ft)
+	    restrictedCircleRadius: 4,
+	    // title of hexagon size legend
+	    sizeLegendTitle: 'Frequency',
+	    // label of start of hexagon size legend
+	    sizeLegendSmallLabel: 'low',
+	    // label of end of hexagon size legend
+	    sizeLegendLargeLabel: 'high',
+	    // distance from baseline where three point line because circular (ft)
+	    threePointCutoffLength: 14,
+	    // distance of three point line from basket (ft)
+	    threePointRadius: 23.75,
+	    // distance of corner three point line from basket (ft)
+	    threePointSideRadius: 22, 
+	    // title of chart
+	    title: 'Shot chart',
+	    // method to determine x position of a bin on the court
+	    translateX: function (d) { return d.x; },
+	    // method to determine y position of a bin on the court
+	    translateY: function (d) { return this._visibleCourtLength - d.y; },
+	}
+
+	var o = opts;
+
+	calculateVisibleCourtLength = function () {
+	      var halfCourtLength = o.courtLength / 2;
+	      var threePointLength = o.threePointRadius + 
+	        o.basketProtrusionLength;
+	      o.visibleCourtLength = threePointLength + 
+	        (halfCourtLength - threePointLength) / 2;
+	}
+
+	calculateVisibleCourtLength();
+
+	// helper to create an arc path
+	appendArcPath = function (base, radius, startAngle, endAngle) {
+	      var points = 30;
+
+	      var angle = d3.scale.linear()
+	          .domain([0, points - 1])
+	          .range([startAngle, endAngle]);
+
+	      var line = d3.svg.line.radial()
+	          .interpolate("basis")
+	          .tension(0)
+	          .radius(radius)
+	          .angle(function(d, i) { return angle(i); });
+
+	      return base.append("path").datum(d3.range(points))
+	          .attr("d", line);
+	}
+
+	// draw basketball court
+	var drawCourt = function () {
+	      var base = d3.select("svg")
+	        .append('g')
+	        .attr('class', 'shot-chart-court');
+	                       
+	      base.append("rect")
+	        .attr('class', 'shot-chart-court-key')
+	        .style("stroke", "black")
+	        .style("stroke-width", "1")
+	        .attr("x", (o.courtWidth / 2 - o.keyWidth / 2)*shift+left)
+	        .attr("y", (o.visibleCourtLength - o.freeThrowLineLength)*shift+courtUp)
+	        .attr("width", o.keyWidth*shift)
+	        .attr("height", o.freeThrowLineLength*shift);
+
+	      base.append("line")
+	        .attr('class', 'shot-chart-court-baseline')
+	        .style("stroke", "black")
+	        .style("stroke-width", "1")
+	        .attr("x1", 0+left)
+	        .attr("y1", o.visibleCourtLength*shift+courtUp)
+	        .attr("x2", o.courtWidth*shift+left)
+	        .attr("y2", o.visibleCourtLength*shift+courtUp);
+	              
+	      var tpAngle = Math.atan(o.threePointSideRadius / 
+	        (o.threePointCutoffLength - o.basketProtrusionLength - o.basketDiameter/2));
+	      appendArcPath(base, o.threePointRadius*shift, -1 * tpAngle, tpAngle)
+	        .attr('class', 'shot-chart-court-3pt-line')
+	        .style("stroke", "black")
+	        .style("stroke-width", "1")
+	        .attr("transform", "translate(" + (o.courtWidth*shift/2+left) + ", " + 
+	          ((o.visibleCourtLength - o.basketProtrusionLength - o.basketDiameter / 2)*shift+courtUp) + 
+	          ")");
+	         
+	      [1, -1].forEach(function (n) {
+	        base.append("line")
+	          .attr('class', 'shot-chart-court-3pt-line')
+	          .style("stroke", "black")
+	        .style("stroke-width", "1")
+	          .attr("x1", (o.courtWidth / 2 + o.threePointSideRadius * n)*shift+left)
+	          .attr("y1", (o.visibleCourtLength - o.threePointCutoffLength)*shift+courtUp)
+	          .attr("x2", (o.courtWidth / 2 + o.threePointSideRadius * n)*shift+left)
+	          .attr("y2", o.visibleCourtLength*shift+courtUp);
+	      });
+	        
+	      appendArcPath(base, o.restrictedCircleRadius*shift, -1 * Math.PI/2, Math.PI/2)
+	        .attr('class', 'shot-chart-court-restricted-area')
+	        .style("stroke", "black")
+	        .style("stroke-width", "1")
+	        .attr("transform", "translate(" + ((o.courtWidth / 2)*shift+left) + ", " + 
+	          ((o.visibleCourtLength - o.basketProtrusionLength - o.basketDiameter / 2)*shift+courtUp) + ")");
+	                                                      
+	      [7, 8, 11, 14].forEach(function (mark) {
+	        [1, -1].forEach(function (n) {
+	          base.append("line")
+	            .attr('class', 'shot-chart-court-key-mark')
+	            .style("stroke", "black")
+	        	.style("stroke-width", "1")
+	            .attr("x1", (o.courtWidth / 2 + o.keyWidth / 2 * n + o.keyMarkWidth * n)*shift+left)
+	            .attr("y1", (o.visibleCourtLength - mark)*shift+courtUp)
+	            .attr("x2", (o.courtWidth / 2 + o.keyWidth / 2 * n)*shift+left)
+	            .attr("y2", (o.visibleCourtLength - mark)*shift+courtUp)
+	        });
+	      });    
+
+	      base.append("line")
+	        .attr('class', 'shot-chart-court-backboard')
+	        .style("stroke", "black")
+	        .style("stroke-width", "1")
+	        .attr("x1", (o.courtWidth / 2 - o.basketWidth / 2)*shift+left)
+	        .attr("y1", (o.visibleCourtLength - o.basketProtrusionLength)*shift+courtUp)
+	        .attr("x2", (o.courtWidth / 2 + o.basketWidth / 2)*shift+left)
+	        .attr("y2", (o.visibleCourtLength - o.basketProtrusionLength)*shift+courtUp)
+	                                     
+	      base.append("circle")
+	        .attr('class', 'shot-chart-court-hoop')
+	        .style("stroke", "black")
+	        .style("stroke-width", "1")
+	        .attr("cx", o.courtWidth / 2 * shift + left)
+	        .attr("cy", (o.visibleCourtLength - o.basketProtrusionLength - o.basketDiameter / 2)*shift+courtUp)
+	        .attr("r", o.basketDiameter / 2 * shift)
+	}
+
+	drawCourt();
+});
+
+
+</script>
+		
+<script src="./acceleration.js"></script>
+</body>  
+</html>  
