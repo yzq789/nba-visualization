@@ -18,6 +18,12 @@
     <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </head>
 <style>
+    .arrow {
+        stroke-width: 5px;
+        stroke: red;
+        stroke-dasharray: 5, 5;
+    }
+
     .hexagon {
         stroke: #000;
         stroke-width: 0.5px;
@@ -115,7 +121,8 @@
                         </div><!--/.nav-collapse -->
                     </div>
                 </nav>
-                <div class="row" style="margin: 0;"><h3 id="explain" style="">View details »</h3></div>
+                <div class="row" style="margin: 0;"><h3 id="explain" style="text-align: center">View details »</h3>
+                </div>
             </div>
             <div class="row" id="main_panel">
                 <svg width="600" height="400" id="east"></svg>
@@ -377,8 +384,8 @@
 
 <script type="text/javascript">
     tab = 1;
-
     function UpdateSvgByGlobleVar() {
+        $("#explain").text("View details »");
         d3.select("#main_panel").selectAll("*").remove();
         d3.select("#tab_ul").selectAll("li").attr("class", "");
         if (tab === 1) {

@@ -4,19 +4,29 @@ var margin = {top: 30, right: 20, bottom: 30, left: 40};
 var width = 644;
 var height = 366;
 
+function func(value) {
+    return value == this;
+}
+function getdirection(playerId) {
+    a = [3062, 3257, 3497, 61849, 75344, 172631, 214152, 226806, 265013, 296572, 410831];
+    h = [2989, 3329, 3235, 3315, 3501, 66858, 172537, 173147, 253980, 292404, 330047];
+    //0 to-right 1 to-left
+    if (a.find(func, playerId)) {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
 function showheatmap(state, playerId, blockSize) {
     d3.selectAll("svg > *").remove();
     if (state === 1) {
-        $("#explain").text("on-ball");
+        $("#explain").text("进攻");
         my_points = offensive_points[playerId];
     } else {
-        $("#explain").text("off-ball");
+        $("#explain").text("防守");
         my_points = defensive_points[playerId];
     }
-    // var svg = d3.select("#main_panel").append("svg")
-    //     .attr("id", "east")
-    //     .attr("width", 600)
-    //     .attr("height", 400);
 
     d3.select("#main_panel").append("div").attr("id", "speed-wrap-div").style("position", "relative");
     d3.select("#speed-wrap-div").append("img")
@@ -53,39 +63,38 @@ function showheatmap(state, playerId, blockSize) {
     defs.append("marker")
         .attr({
             "id": "arrow",
-            "viewBox": "0 -5 10 10",
-            "refX": 5,
-            "refY": 0,
-            "markerWidth": 4,
-            "markerHeight": 4,
+            "viewBox": "0 0 12 12",
+            "refX": 6,
+            "refY": 6,
+            "markerWidth": 12,
+            "markerHeight": 12,
             "orient": "auto"
         })
         .append("path")
-        .attr("d", "M0,-5L10,0L0,5")
+        .attr("d", "M2,2 L10,6 L2,10 L6,6 L2,2")
         .attr("class", "arrowHead");
-    type = ['xxx', 'arrow'];
-    g.append('line')
-        .attr({
-            "class": "arrow",
-            "marker-end": "url(#" + type[1] + ")",
-            "x1": 20,
-            "y1": 20,
-            "x2": 400,
-            "y2": 300
-        })
-    // .style("stroke-width", "6px")
-    // .style("stroke", "red");
+    if (getdirection(playerId) === 0) {
+        g.append('line')
+            .attr({
+                "class": "arrow",
+                "marker-end": "url(#arrow)",
+                "x1": 200,
+                "y1": 180,
+                "x2": 420,
+                "y2": 180
+            });
+    } else {
+        g.append('line')
+            .attr({
+                "class": "arrow",
+                "marker-end": "url(#arrow)",
+                "x1": 420,
+                "y1": 180,
+                "x2": 200,
+                "y2": 180
 
-    // width = svg.attr("width");
-    // height = svg.attr("height");
-
-    // g.append("line")
-    //     .attr("x1", 10)
-    //     .attr("y1", 10)
-    //     .attr("x2", width - margin.right)
-    //     .attr("y2", 10)
-    //     .style("stroke", "red")
-    //     .style("stroke-width", "6px");
+            });
+    }
 
     x_scales = width / 94.0;
     y_scales = height / 50.0;
