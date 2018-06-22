@@ -25,8 +25,7 @@ function showheatmap(state, playerId, blockSize) {
         .attr("src", "./court.png")
         .style("width", court_width)
         .style("height", court_height)
-        .style("opacity", "0.5")
-        // .style("left", "20px");
+        .style("opacity", "0.5");
 
 
     d3.select("#speed-wrap-div").append("div")
@@ -47,19 +46,44 @@ function showheatmap(state, playerId, blockSize) {
         .style("height", 360 + 60)
         .style("left", -33)
         .style("top", -22);
-
-
-    //     width = +svg.attr("width") - margin.left - margin.right,
-    //     height = +svg.attr("height") - margin.top - margin.bottom,
     g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    // Arrow
+    defs = svg.append("defs");
+    defs.append("marker")
+        .attr({
+            "id": "arrow",
+            "viewBox": "0 -5 10 10",
+            "refX": 5,
+            "refY": 0,
+            "markerWidth": 4,
+            "markerHeight": 4,
+            "orient": "auto"
+        })
+        .append("path")
+        .attr("d", "M0,-5L10,0L0,5")
+        .attr("class", "arrowHead");
+    type = ['xxx', 'arrow'];
+    g.append('line')
+        .attr({
+            "class": "arrow",
+            "marker-end": "url(#" + type[1] + ")",
+            "x1": 20,
+            "y1": 20,
+            "x2": 400,
+            "y2": 300
+        })
+    // .style("stroke-width", "6px")
+    // .style("stroke", "red");
+
     // width = svg.attr("width");
     // height = svg.attr("height");
 
     // g.append("line")
-    //     .attr("x1", -10)
-    //     .attr("y1", -10)
+    //     .attr("x1", 10)
+    //     .attr("y1", 10)
     //     .attr("x2", width - margin.right)
-    //     .attr("y2", -10)
+    //     .attr("y2", 10)
     //     .style("stroke", "red")
     //     .style("stroke-width", "6px");
 
