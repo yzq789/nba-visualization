@@ -10,56 +10,6 @@ var	court_left = court_left_num + "px";
 var	court_top = court_top_num + "px";
 var court_acc_left = court_acc_left_num + "px";
 
-d3.select("body").append("p")
-	.text("进攻方向速度可视化")
-	.style("position", "absolute")
-	.style("top", court_top_num - 35 + "px")
-	.style("left", court_left_num + 10 +  "px");
-
-d3.select("body").append("p")
-	.text("进攻方向加速度可视化")
-	.style("position", "absolute")
-	.style("top", court_top_num - 35 + "px")
-	.style("left", court_acc_left_num + 10 +  "px");
-
-d3.select("body").append("img")
-	.attr("id", "speed-court-img")
-	.attr("src", "./court.png")
-	.style("width", court_width)
-	.style("height", court_height)
-	.style("left", court_left)
-	.style("top", court_top)
-	.style("opacity", "0.5");
-
-d3.select("body").append("div")
-	.style("position", "absolute")
-	.style("width", court_width)
-	.style("height", court_height)
-	.style("left", court_left)
-	.style("top", court_top)
-	.style("opacity", "1")
-	.style("background", "#E3E6E6")
-	.style("z-index", "-100");
-
-d3.select("body").append("img")
-	.attr("id", "acc-court-img")
-	.attr("src", "./court.png")
-	.style("width", court_width)
-	.style("height", court_height)
-	.style("left", court_acc_left)
-	.style("top", court_top)
-	.style("opacity", "0.5");
-
-d3.select("body").append("div")
-	.style("position", "absolute")
-	.style("width", court_width)
-	.style("height", court_height)
-	.style("left", court_acc_left)
-	.style("top", court_top)
-	.style("opacity", "1")
-	.style("background", "#E3E6E6")
-	.style("z-index", "-100");
-
 
 function updateSpeedAndAcceleration(playerId){
 
@@ -74,19 +24,39 @@ function updateSpeedAndAcceleration(playerId){
 }
 
 function updateAcceleration(playerId){
-	d3.selectAll(".acc-svg").remove();
+
+	d3.select("#main_panel").append("div").attr("id", "acc-wrap-div").style("position", "relative");
+
+
+	d3.select("#acc-wrap-div").append("img")
+		.attr("id", "acc-court-img")
+		.attr("src", "./court.png")
+		.style("width", court_width)
+		.style("height", court_height)
+		.style("opacity", "0.5");
+
+	d3.select("#acc-wrap-div").append("div")
+		.style("position", "absolute")
+		.style("width", court_width)
+		.style("height", court_height)
+		.style("left", 0)
+		.style("top", 0)
+		.style("opacity", "1")
+		.style("background", "#E3E6E6")
+		.style("z-index", "-100");
+
 
 	d3.csv("./acc-data/player-" + playerId + "-cell.csv", function(error, data) {
 
 		var cell_size = 14;
 
-		var svg = d3.select("body").append("svg")
+		var svg = d3.select("#acc-wrap-div").append("svg")
 			.attr("class", "acc-svg")
 		    .style("position", "absolute")
 		    .style("width", court_width)
 		    .style("height", court_height)
-		    .style("left", court_acc_left)
-		    .style("top", court_top);
+		    .style("left", 0)
+		    .style("top", 0);
 
 		cells = svg.selectAll(".cell")
 			.data(data)
@@ -98,7 +68,10 @@ function updateAcceleration(playerId){
 			.attr("height", cell_size);
 
 		cells.each(function(d, i){
-			d3.select(this).append("line")
+
+			var cell = d3.select(this);
+
+			cell.append("line")
 				.attr("x1", cell_size / 2 - (d["acc_x"]) * cell_size * 5)
 				.attr("y1", cell_size / 2 - (d["acc_y"]) * cell_size * 5)
 				.attr("x2", cell_size / 2)
@@ -106,25 +79,55 @@ function updateAcceleration(playerId){
 				.attr("transform", "rotate(15, " + cell_size / 2 + " " + cell_size/2 + ")")
 				.style("stroke", acc_color)
 				.style("stroke-width", acc_bold)
-	            .on("mouseover", function(d){
-	            	console.log(Math.sqrt(d["acc_x"] * d["acc_x"] + d["acc_y"] * d["acc_y"]));
+				.on("mouseover", function(d){
+					acc_mouseover(d, cell, cell_size);
+            	})
+	            .on("mouseout", function(){
+	                cell.select(".rect_layer").remove();
+	                cell.select(".text_layer").remove();
 	            });
 
-			d3.select(this).append("line")
+			cell.append("line")
 				.attr("x1", cell_size / 2 - (d["acc_x"]) * cell_size * 5)
 				.attr("y1", cell_size / 2 - (d["acc_y"]) * cell_size * 5)
 				.attr("x2", cell_size / 2)
 				.attr("y2", cell_size / 2)
 				.attr("transform", "rotate(-15, " + cell_size / 2 + " " + cell_size/2 + ")")
 				.style("stroke", acc_color)
-				.style("stroke-width", acc_bold);
+				.style("stroke-width", acc_bold)
+				.on("mouseover", function(d){
+					acc_mouseover(d, cell, cell_size);
+            	})
+	            .on("mouseout", function(){
+	                cell.select(".rect_layer").remove();
+	                cell.select(".text_layer").remove();
+	            });
 		})
 	})
 }
 
 
 function updateSpeed(playerId){
-	d3.selectAll(".speed-svg").remove();
+
+d3.select("#main_panel").append("div").attr("id", "speed-wrap-div").style("position", "relative");
+
+d3.select("#speed-wrap-div").append("img")
+	.attr("id", "speed-court-img")
+	.attr("src", "./court.png")
+	.style("width", court_width)
+	.style("height", court_height)
+	.style("opacity", "0.5");
+
+d3.select("#speed-wrap-div").append("div")
+	.style("position", "absolute")
+	.style("width", court_width)
+	.style("height", court_height)
+	.style("left", 0)
+	.style("top", 0)
+	.style("opacity", "1")
+	.style("background", "#E3E6E6")
+	.style("z-index", "-100");
+
 
 	d3.csv("./speed-data/player-" + playerId + "-cell.csv", function(error, data) {
 
@@ -135,13 +138,13 @@ function updateSpeed(playerId){
 		domain["speed_x"] = d3.extent(data, function(d) { return d["speed_x"]; });
 		domain["speed_y"] = d3.extent(data, function(d) { return d["speed_y"]; });
 
-		var svg = d3.select("body").append("svg")
+		var svg = d3.select("#speed-wrap-div").append("svg")
 			.attr("class", "speed-svg")
 		    .style("position", "absolute")
 		    .style("width", court_width)
 		    .style("height", court_height)
-		    .style("left", court_left)
-		    .style("top", court_top);
+		    .style("left", 0)
+		    .style("top", 0);
 
 		cells = svg.selectAll(".cell")
 			.data(data)
@@ -162,7 +165,11 @@ function updateSpeed(playerId){
 
 
 		cells.each(function(d, i){
-			d3.select(this).append("line")
+
+			var cell = d3.select(this);
+
+
+			cell.append("line")
 				.attr("x1", cell_size / 2 - scale_x(d["speed_x"]) * cell_size )
 				.attr("y1", cell_size / 2 - scale_y(d["speed_y"]) * cell_size )
 				.attr("x2", cell_size / 2)
@@ -171,10 +178,14 @@ function updateSpeed(playerId){
 				.style("stroke", speed_color)
 				.style("stroke-width", speed_bold)
 				.on("mouseover", function(d){
-	            	console.log(Math.sqrt(d["speed_x"] * d["speed_x"] + d["speed_y"] * d["speed_y"]));
-	            });
+					speed_mouseover(d, cell);
+            	})
+	            .on("mouseout", function(){
+	                cell.select(".rect_layer").remove();
+	                cell.select(".text_layer").remove();
+	            })
 
-			d3.select(this).append("line")
+			cell.append("line")
 				.attr("x1", cell_size / 2 - scale_x(d["speed_x"]) * cell_size * 1.2)
 				.attr("y1", cell_size / 2 - scale_y(d["speed_y"]) * cell_size * 1.2)
 				.attr("x2", cell_size / 2)
@@ -183,8 +194,12 @@ function updateSpeed(playerId){
 				.style("stroke", speed_color)
 				.style("stroke-width", speed_bold)
 				.on("mouseover", function(d){
-	            	console.log(Math.sqrt(d["speed_x"] * d["speed_x"] + d["speed_y"] * d["speed_y"]));
-	            });
+					speed_mouseover(d, cell);
+            	})
+	            .on("mouseout", function(){
+	                cell.select(".rect_layer").remove();
+	                cell.select(".text_layer").remove();
+	            })
 		})
 	})
 }
@@ -217,3 +232,55 @@ function acc_color(d, i){
 	else if(length > 0.15) return "#4C9B71";
 	else return "#64BD79";
 }
+
+
+function acc_mouseover(d, cell, cell_size){
+    var rect_layer = cell.append("g").attr("class", "rect_layer");
+    var text_layer = cell.append("g").attr("class", "text_layer");
+    var text_length = text_layer.append("text")
+      .attr("x", cell_size / 2)
+      .attr("y", cell_size / 2 + 3)
+      .attr("dy", "1.1em")
+      .attr("class", "tooltip_text")
+      .style("fill", "white")
+      .attr("render-order", 99)
+      .text(parseFloat(Math.sqrt(d["acc_x"] * d["acc_x"] +  d["acc_y"] * d["acc_y"])).toFixed(2) + "m/s²");
+
+      rect_layer.append("rect")
+      .attr("class", "tooltip_rect")
+      .attr("x", cell_size / 2)
+      .attr("y", cell_size / 2)
+      .attr("rx", 5)
+      .attr("ry", 5)
+      .attr("width", 65)
+      .attr("height", 25)
+      .style("fill", "black")
+      .style("fill-opacity", ".");
+}
+
+
+
+function speed_mouseover(d, cell, cell_size){
+    var rect_layer = cell.append("g").attr("class", "rect_layer");
+    var text_layer = cell.append("g").attr("class", "text_layer");
+    var text_length = text_layer.append("text")
+      .attr("x", cell_size / 2)
+      .attr("y", cell_size / 2 + 3)
+      .attr("dy", "1.1em")
+      .attr("class", "tooltip_text")
+      .style("fill", "white")
+      .attr("render-order", 99)
+      .text(parseFloat(Math.sqrt(d["speed_x"] * d["speed_x"] +  d["speed_y"] * d["speed_y"])).toFixed(2) + "m/s");
+
+      rect_layer.append("rect")
+      .attr("class", "tooltip_rect")
+      .attr("x", cell_size / 2)
+      .attr("y", cell_size / 2)
+      .attr("rx", 5)
+      .attr("ry", 5)
+      .attr("width", 65)
+      .attr("height", 25)
+      .style("fill", "black")
+      .style("fill-opacity", ".7");
+}
+

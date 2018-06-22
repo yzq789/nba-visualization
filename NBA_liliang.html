@@ -62,17 +62,18 @@
                     <div class="container">
 
                         <div id="navbar" class="navbar-collapse collapse">
-                            <ul class="nav navbar-nav">
-                                <li class="active"><a href="#">投篮可视化</a></li>
-                                <li><a href="#about">运动可视化</a></li>
-                                <li><a href="#contact">速度可视化</a></li>
+                            <ul class="nav navbar-nav" id="tab_ul">
+                                <li class="active"><a href="#" onclick="tab=1;UpdateSvgByGlobleVar();">投篮可视化</a></li>
+                                <li><a href="#about" onclick="tab=2;UpdateSvgByGlobleVar();">运动可视化</a></li>
+                                <li><a href="#speed" onclick="tab=3;UpdateSvgByGlobleVar();">速度可视化</a></li>
+                                <li><a href="#acc" onclick="tab=4;UpdateSvgByGlobleVar();">加速度的可视化</a></li>
                             </ul>
                         </div><!--/.nav-collapse -->
                     </div>
                 </nav>
                 <div class="row" style="margin: 0;"><p>View details »</p></div>
             </div>
-            <div class="row">
+            <div class="row" id="main_panel">
                 <svg width="600" height="400" id="east"></svg>
                 <!--<div id='heatmap' style="width: auto;height:740px;"></div>-->
             </div>
@@ -226,6 +227,8 @@
 	        else player = players[currentPlayerIndex];
 	        updatePlayerInfo(player);
 	        update(team, player, shots, blockSize);
+	        UpdateSvgByGlobleVar();
+
 	    }
 
 	    teamDiv = d3.select("#player_info").append("div");
@@ -325,5 +328,29 @@
 	    draw();
 	});
 </script>
+
+<script type="text/javascript">
+tab = 1;
+
+function UpdateSvgByGlobleVar(){
+	d3.select("#main_panel").selectAll("*").remove();
+	d3.select("#tab_ul").selectAll("li").attr("class", "");
+	if(tab == 1){
+
+	}else if(tab == 2){
+
+	}else if(tab == 3){
+		updateSpeed(player.id);
+		d3.select("li#speed").attr("class", "active");
+	}else if(tab == 4){
+		updateAcceleration(player.id);
+		d3.select("li#acc").attr("class", "active");
+	}
+}
+
+</script>
+
+
 <script src="./heatmap.js" charset="utf-8"></script>
 <script src="./east.js" charset="utf-8"></script>
+<script src="./acceleration.js"></script>
