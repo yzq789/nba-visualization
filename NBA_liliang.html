@@ -29,17 +29,19 @@
         margin-right: 4px;
     }
 
-    .shot-chart-court *{
-	    fill:transparent;
-	    stroke:black;
-	    stroke-width:2;
-	}
-	.shot-chart-court-ft-circle-bottom{
-	    stroke-dasharray:1.5, 1
-	}
-	.shot-chart-court-hoop,.shot-chart-court-backboard{
-	    z-index:100
-	}
+    .shot-chart-court * {
+        fill: transparent;
+        stroke: black;
+        stroke-width: 2;
+    }
+
+    .shot-chart-court-ft-circle-bottom {
+        stroke-dasharray: 1.5, 1
+    }
+
+    .shot-chart-court-hoop, .shot-chart-court-backboard {
+        z-index: 100
+    }
 </style>
 <body>
 <div class="container">
@@ -65,6 +67,15 @@
                             <ul class="nav navbar-nav" id="tab_ul">
                                 <li class="active"><a href="#" onclick="tab=1;UpdateSvgByGlobleVar();">投篮可视化</a></li>
                                 <li><a href="#about" onclick="tab=2;UpdateSvgByGlobleVar();">运动可视化</a></li>
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                                       aria-haspopup="true" aria-expanded="false">站位可视化 <span
+                                            class="caret"></span></a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="#" onclick="tab=2;UpdateSvgByGlobleVar()">进攻</a></li>
+                                        <li><a href="#" onclick="tab=5;UpdateSvgByGlobleVar()">防守</a></li>
+                                    </ul>
+                                </li>
                                 <li><a href="#speed" onclick="tab=3;UpdateSvgByGlobleVar();">速度可视化</a></li>
                                 <li><a href="#acc" onclick="tab=4;UpdateSvgByGlobleVar();">加速度的可视化</a></li>
                             </ul>
@@ -89,10 +100,12 @@
 <script src="https://d3js.org/d3-hexbin.v0.2.min.js"></script>
 <script src="http://d3js.org/topojson.v1.min.js" charset="utf-8"></script>
 <script>
-    var my_points;
-    $.getJSON("heatmap.json", function (result) {
-        my_points = result['265013'];
-        showheatmap()
+    var defensive_points, offensive_points;
+    $.getJSON("defensive_heat.json", function (result) {
+        defensive_points = result;
+    });
+    $.getJSON("offensive_heat.json", function (result) {
+        offensive_points = result;
     });
 
     var courtwidth = 50;
@@ -100,252 +113,254 @@
     var blockSize = 1;
     var currentTeamIndex = 0;
     var currentPlayerIndex = 0;
-    d3.json("data.json", function(error, valuedata){
-	    if(error){  
-	        console.log(error);  
-	    }
-	    console.log("valuedata");
-	    console.log(valuedata);
+    d3.json("data.json", function (error, valuedata) {
+        if (error) {
+            console.log(error);
+        }
+        console.log("valuedata");
+        console.log(valuedata);
 
-	    playerInfos = valuedata.players;
-	    console.log("playerInfos");
-	    console.log(playerInfos);
+        playerInfos = valuedata.players;
+        console.log("playerInfos");
+        console.log(playerInfos);
 
-	    var teams = valuedata.teams;
-	    playerInfos = valuedata.players;
-	    for(i = 0;i < teams.length;i++){
-	        players = teams[i].players;
-	        for(j = 0;j < players.length;j++){
-	            id = players[j];
-	            for(k = 0;k < playerInfos.length;k++){
-	                if(id == playerInfos[k].id){
-	                    players[j] = playerInfos[k];
-	                    break;
-	                }
-	            }
-	        }
-	    }
-	    team = teams[currentTeamIndex];
-	    player = players[currentPlayerIndex];
-	    console.log("team");
-	    console.log(team);
-	    console.log("player");
-	    console.log(player);
+        var teams = valuedata.teams;
+        playerInfos = valuedata.players;
+        for (i = 0; i < teams.length; i++) {
+            players = teams[i].players;
+            for (j = 0; j < players.length; j++) {
+                id = players[j];
+                for (k = 0; k < playerInfos.length; k++) {
+                    if (id == playerInfos[k].id) {
+                        players[j] = playerInfos[k];
+                        break;
+                    }
+                }
+            }
+        }
+        team = teams[currentTeamIndex];
+        player = players[currentPlayerIndex];
+        console.log("team");
+        console.log(team);
+        console.log("player");
+        console.log(player);
 
-	    shots = valuedata.shots;
-	    console.log(shots);
-	    for(i = 0;i < shots.length;i++){
-	        x = shots[i].x;
-	        shots[i].x = Math.abs(x - courtlength/2);
+        shots = valuedata.shots;
+        console.log(shots);
+        for (i = 0; i < shots.length; i++) {
+            x = shots[i].x;
+            shots[i].x = Math.abs(x - courtlength / 2);
 
-	        if(shots[i].x > courtlength/2){
-	            y = shots[i].y;
-	            shots[i].y = courtwidth - y; 
-	        }
+            if (shots[i].x > courtlength / 2) {
+                y = shots[i].y;
+                shots[i].y = courtwidth - y;
+            }
 
-	        t = shots[i].x;
-	        shots[i].x = shots[i].y;
-	        shots[i].y = t;
-	    }
-	    console.log("shots");
-	    console.log(shots);
+            t = shots[i].x;
+            shots[i].x = shots[i].y;
+            shots[i].y = t;
+        }
+        console.log("shots");
+        console.log(shots);
 
-	    var updateTeam = function(){
-	        if(currentTeamIndex == -1){
-	        	team = undefined;
-	            players = teams[0].players;
-	            for(i = 1;i < teams.length;i++)
-	                players = players.concat(teams[i].players);
-	        } else {
-	            players = teams[currentTeamIndex].players;
-	        }
-	        d3.select("#players").selectAll("option").remove();
+        var updateTeam = function () {
+            if (currentTeamIndex == -1) {
+                team = undefined;
+                players = teams[0].players;
+                for (i = 1; i < teams.length; i++)
+                    players = players.concat(teams[i].players);
+            } else {
+                players = teams[currentTeamIndex].players;
+            }
+            d3.select("#players").selectAll("option").remove();
 
-	        playerSelect.selectAll("option")
-	            .data(players)
-	            .enter()
-	            .append("option")
-	            .attr("value", function(d,i){
-	                return i;
-	            })
-	            .text(function(d){
-	                return d.firstName + " " + d.lastName;
-	            });
-	        playerSelect.append("option")
-	            .attr("value", -1)
-	            .text("all");
+            playerSelect.selectAll("option")
+                .data(players)
+                .enter()
+                .append("option")
+                .attr("value", function (d, i) {
+                    return i;
+                })
+                .text(function (d) {
+                    return d.firstName + " " + d.lastName;
+                });
+            playerSelect.append("option")
+                .attr("value", -1)
+                .text("all");
 
-	        updatePlayer(players);
-	    };
+            updatePlayer(players);
+        };
 
-	    var updatePlayerInfo = function(player){
-	        if(player == undefined){
-	            d3.select("#photo").attr('src', function(){
-	                path = 'photo/all.png';
-	                return path;
-	            });
+        var updatePlayerInfo = function (player) {
+            if (player == undefined) {
+                d3.select("#photo").attr('src', function () {
+                    path = 'photo/all.png';
+                    return path;
+                });
 
-	            d3.select("#name").text(function(){
-	                return "all";
-	            });
-	            d3.select("#position").text("");
-	            d3.select("#height").text("");
-	            d3.select("#weight").text("");
-	            return;
-	        }
+                d3.select("#name").text(function () {
+                    return "all";
+                });
+                d3.select("#position").text("");
+                d3.select("#height").text("");
+                d3.select("#weight").text("");
+                return;
+            }
 
-	        d3.select("#photo").attr('src', function(){
-	            path = 'photo/' + player.id + ".png";
-	            return path;
-	        });
+            d3.select("#photo").attr('src', function () {
+                path = 'photo/' + player.id + ".png";
+                return path;
+            });
 
-	        d3.select("#name").text(function(){
-	            return "#" + player.number + " " + player.firstName + " " + player.lastName;
-	        });
-	        d3.select("#position").text(function(){
-	            return player.position;
-	        });
-	        d3.select("#height").text(function(){
-	            return (player.height / 10) + " feet";
-	        });
-	        d3.select("#weight").text(function(){
-	            return player.weight + " pound";
-	        });
-	    }
+            d3.select("#name").text(function () {
+                return "#" + player.number + " " + player.firstName + " " + player.lastName;
+            });
+            d3.select("#position").text(function () {
+                return player.position;
+            });
+            d3.select("#height").text(function () {
+                return (player.height / 10) + " feet";
+            });
+            d3.select("#weight").text(function () {
+                return player.weight + " pound";
+            });
+        }
 
-	    var updatePlayer = function(){
-	        if(currentTeamIndex == -1){
-	            players = teams[0].players;
-	            for(i = 1;i < teams.length;i++)
-	                players = players.concat(teams[i].players);
-	        } else {
-	            a = ["a", "h"];
-	            team = a[currentTeamIndex];
-	            players = teams[currentTeamIndex].players;
-	        }
-	        if(currentPlayerIndex == -1)player = undefined;
-	        else player = players[currentPlayerIndex];
-	        updatePlayerInfo(player);
-	        UpdateSvgByGlobleVar();
+        var updatePlayer = function () {
+            if (currentTeamIndex == -1) {
+                players = teams[0].players;
+                for (i = 1; i < teams.length; i++)
+                    players = players.concat(teams[i].players);
+            } else {
+                a = ["a", "h"];
+                team = a[currentTeamIndex];
+                players = teams[currentTeamIndex].players;
+            }
+            if (currentPlayerIndex == -1) player = undefined;
+            else player = players[currentPlayerIndex];
+            updatePlayerInfo(player);
+            UpdateSvgByGlobleVar();
 
-	    }
+        }
 
-	    teamDiv = d3.select("#player_info").append("div");
-	    teamDiv.append("text")
-	        .attr("class","valueText")
-	        .style("position", "relative")
-	        .text("team:");
-	    teamSelect = teamDiv.append("select")
-	        .attr("id", "teams")
-	        .style("position", "relative")
-	        .style("left", "10px")
-	        .style("width", "150px")
-	        .attr("name", "teams")
-	        .on('change',function(){
-	                currentTeamIndex = this.value;
-	                updateTeam();
-	            },false);
-	    teamSelect.selectAll("option")
-	        .data(teams)
-	        .enter()
-	        .append("option")
-	        .attr("value", function(d,i){
-	            return i;
-	        })
-	        .text(function(d){
-	            return d.name;
-	        });
-	    teamSelect.append("option")
-	        .attr("value", -1)
-	        .text("all");
+        teamDiv = d3.select("#player_info").append("div");
+        teamDiv.append("text")
+            .attr("class", "valueText")
+            .style("position", "relative")
+            .text("team:");
+        teamSelect = teamDiv.append("select")
+            .attr("id", "teams")
+            .style("position", "relative")
+            .style("left", "10px")
+            .style("width", "150px")
+            .attr("name", "teams")
+            .on('change', function () {
+                currentTeamIndex = this.value;
+                updateTeam();
+            }, false);
+        teamSelect.selectAll("option")
+            .data(teams)
+            .enter()
+            .append("option")
+            .attr("value", function (d, i) {
+                return i;
+            })
+            .text(function (d) {
+                return d.name;
+            });
+        teamSelect.append("option")
+            .attr("value", -1)
+            .text("all");
 
-	    playerDiv = d3.select("#player_info").append("div");
-	    playerDiv.append("text")
-	        .attr("class","valueText")
-	        .style("width", "50px")
-	        .text("player: ");
-	    playerSelect = playerDiv.append("select")
-	        .attr("id", "players")
-	        .style("position", "relative")
-	        // .style("left", "200px")
-	        .style("width", "150px")
-	        .attr("name", "players")
-	        .on('change',function(){
-	                currentPlayerIndex = this.value;
-	                updatePlayer();
-	            },false);
+        playerDiv = d3.select("#player_info").append("div");
+        playerDiv.append("text")
+            .attr("class", "valueText")
+            .style("width", "50px")
+            .text("player: ");
+        playerSelect = playerDiv.append("select")
+            .attr("id", "players")
+            .style("position", "relative")
+            // .style("left", "200px")
+            .style("width", "150px")
+            .attr("name", "players")
+            .on('change', function () {
+                currentPlayerIndex = this.value;
+                updatePlayer();
+            }, false);
 
-	    scaleDiv = d3.select("#player_info").append("div");
-	    scaleDiv.append("text")
-	        .attr("class","valueText")
-	        .style("position", "relative")
-	        .style("width", "50px")
-	        .text("scale:");
-	    scaleDiv.append("input")
-	        .attr('type', 'range')
-	        .attr('min', '1')
-	        .attr('max', '5')
-	        .attr('step', '1')
-	        .attr('value', '1')
-	        .attr('id', 'blockSizeInput')
-	        .style("position", "relative")
-	        .style("left", "10px")
-	        .style("width", "150px")
-	        .on("change",function(d,i){
-	            blockSize = this.value;
+        scaleDiv = d3.select("#player_info").append("div");
+        scaleDiv.append("text")
+            .attr("class", "valueText")
+            .style("position", "relative")
+            .style("width", "50px")
+            .text("scale:");
+        scaleDiv.append("input")
+            .attr('type', 'range')
+            .attr('min', '1')
+            .attr('max', '5')
+            .attr('step', '1')
+            .attr('value', '1')
+            .attr('id', 'blockSizeInput')
+            .style("position", "relative")
+            .style("left", "10px")
+            .style("width", "150px")
+            .on("change", function (d, i) {
+                blockSize = this.value;
                 UpdateSvgByGlobleVar();
-	        });
+            });
 
-	    infoDiv = d3.select("#player_info").append("div")
-	        .style("position", "relative")
-	        .style("top", "10px");
-	    infoDiv.append("div")
-	        .attr("align", "center")
-	        .append("img")
-	        .attr("id", "photo")
-	        .attr("width", "260")
-	        .attr("height", "190");
+        infoDiv = d3.select("#player_info").append("div")
+            .style("position", "relative")
+            .style("top", "10px");
+        infoDiv.append("div")
+            .attr("align", "center")
+            .append("img")
+            .attr("id", "photo")
+            .attr("width", "260")
+            .attr("height", "190");
 
-	    playerInfoDiv = infoDiv.append("div")
-	        .style("display", "inline")
-	        .style("text-align", "center");
-	    playerInfoDiv.append("div").append("text")
-	        .attr("class","valueText")
-	        .attr("id", "name");
-	    playerInfoDiv.append("div").append("text")
-	        .attr("class","valueText")
-	        .attr("id", "position");
-	    playerInfoDiv.append("div").append("text")
-	        .attr("class","valueText")
-	        .attr("id", "height");
-	    playerInfoDiv.append("div").append("text")
-	        .attr("class","valueText")
-	        .attr("id", "weight");
+        playerInfoDiv = infoDiv.append("div")
+            .style("display", "inline")
+            .style("text-align", "center");
+        playerInfoDiv.append("div").append("text")
+            .attr("class", "valueText")
+            .attr("id", "name");
+        playerInfoDiv.append("div").append("text")
+            .attr("class", "valueText")
+            .attr("id", "position");
+        playerInfoDiv.append("div").append("text")
+            .attr("class", "valueText")
+            .attr("id", "height");
+        playerInfoDiv.append("div").append("text")
+            .attr("class", "valueText")
+            .attr("id", "weight");
 
-	    updateTeam();
-	    updatePlayer();
-	});
+        updateTeam();
+        updatePlayer();
+    });
 </script>
 
 <script type="text/javascript">
-tab = 1;
+    tab = 1;
 
-function UpdateSvgByGlobleVar(){
-	d3.select("#main_panel").selectAll("*").remove();
-	d3.select("#tab_ul").selectAll("li").attr("class", "");
-	if(tab == 1){
-        update(team, player, shots, blockSize);
-        draw();
-	}else if(tab == 2){
-
-	}else if(tab == 3){
-		updateSpeed(player.id);
-		d3.select("li#speed").attr("class", "active");
-	}else if(tab == 4){
-		updateAcceleration(player.id);
-		d3.select("li#acc").attr("class", "active");
-	}
-}
+    function UpdateSvgByGlobleVar() {
+        d3.select("#main_panel").selectAll("*").remove();
+        d3.select("#tab_ul").selectAll("li").attr("class", "");
+        if (tab === 1) {
+            update(team, player, shots, blockSize);
+            draw();
+        } else if (tab === 2) {
+            showheatmap(1, player.id, blockSize)
+        } else if (tab === 5) {
+            showheatmap(0, player.id, blockSize)
+        } else if (tab === 3) {
+            updateSpeed(player.id);
+            d3.select("li#speed").attr("class", "active");
+        } else if (tab === 4) {
+            updateAcceleration(player.id);
+            d3.select("li#acc").attr("class", "active");
+        }
+    }
 
 </script>
 
