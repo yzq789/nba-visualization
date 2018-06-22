@@ -21,7 +21,10 @@ function update(team, player, shots, blockSize) {
 
     points = [];
 
-    var svg = d3.select("#east");
+    svg = d3.select("#main_panel").append("svg")
+        .attr("id", "east")
+        .attr("width", 600)
+        .attr("height", 400);
 
     var updateShots = function(shots, player, team){
         if(player == undefined){
@@ -186,7 +189,7 @@ function draw(){
     };
     // draw basketball court
     var drawCourt = function () {
-        var base = d3.select("#east")
+        base = d3.select("#east")
             .append('g')
             .attr('class', 'shot-chart-court');
                            
@@ -215,6 +218,13 @@ function draw(){
             .attr('class', 'shot-chart-court-baseline')
             .attr("x1", o.courtWidth*shift+left)
             .attr("y1", o.visibleCourtLength*shift+courtUp)
+            .attr("x2", o.courtWidth*shift+left)
+            .attr("y2", o.halfCourtLength*shift+courtUp);
+
+        base.append("line")
+            .attr('class', 'shot-chart-court-baseline')
+            .attr("x1", 0+left)
+            .attr("y1", o.halfCourtLength*shift+courtUp)
             .attr("x2", o.courtWidth*shift+left)
             .attr("y2", o.halfCourtLength*shift+courtUp);
                   

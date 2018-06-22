@@ -32,7 +32,7 @@
     .shot-chart-court *{
 	    fill:transparent;
 	    stroke:black;
-	    stroke-width:1;
+	    stroke-width:2;
 	}
 	.shot-chart-court-ft-circle-bottom{
 	    stroke-dasharray:1.5, 1
@@ -132,7 +132,7 @@
 	    console.log("player");
 	    console.log(player);
 
-	    var shots = valuedata.shots;
+	    shots = valuedata.shots;
 	    console.log(shots);
 	    for(i = 0;i < shots.length;i++){
 	        x = shots[i].x;
@@ -226,7 +226,6 @@
 	        if(currentPlayerIndex == -1)player = undefined;
 	        else player = players[currentPlayerIndex];
 	        updatePlayerInfo(player);
-	        update(team, player, shots, blockSize);
 	        UpdateSvgByGlobleVar();
 
 	    }
@@ -294,7 +293,7 @@
 	        .style("width", "150px")
 	        .on("change",function(d,i){
 	            blockSize = this.value;
-	            update(team, player, shots, blockSize);
+                UpdateSvgByGlobleVar();
 	        });
 
 	    infoDiv = d3.select("#player_info").append("div")
@@ -325,7 +324,6 @@
 
 	    updateTeam();
 	    updatePlayer();
-	    draw();
 	});
 </script>
 
@@ -336,7 +334,8 @@ function UpdateSvgByGlobleVar(){
 	d3.select("#main_panel").selectAll("*").remove();
 	d3.select("#tab_ul").selectAll("li").attr("class", "");
 	if(tab == 1){
-
+        update(team, player, shots, blockSize);
+        draw();
 	}else if(tab == 2){
 
 	}else if(tab == 3){
