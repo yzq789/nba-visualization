@@ -23,7 +23,7 @@ function updateSpeedAndAcceleration(playerId) {
 
 }
 
-function updateAcceleration(playerId) {
+function updateAcceleration(playerId, blockSize) {
 
     d3.select("#main_panel").append("div").attr("id", "acc-wrap-div").style("position", "relative");
 
@@ -50,6 +50,25 @@ function updateAcceleration(playerId) {
 
         var cell_size = 14;
 
+        var domain = {}
+
+        domain["acc_x"] = d3.extent(data, function (d) {
+            return d["acc_x"];
+        });
+        domain["acc_y"] = d3.extent(data, function (d) {
+            return d["acc_y"];
+        });
+        var scale_x = d3.scale.linear()
+            .domain(domain["acc_x"])
+            .range([domain["acc_x"][0] * 0.5, domain["acc_x"][1] * blockSize * 0.3]);
+
+        var scale_y = d3.scale.linear()
+            .domain(domain["acc_y"])
+            .range([domain["acc_y"][0] * 0.5, domain["acc_y"][1] * blockSize * 0.3]);
+
+
+
+
         var svg = d3.select("#acc-wrap-div").append("svg")
             .attr("class", "acc-svg")
             .style("position", "absolute")
@@ -74,8 +93,8 @@ function updateAcceleration(playerId) {
             var cell = d3.select(this);
 
             cell.append("line")
-                .attr("x1", cell_size / 2 - (d["acc_x"]) * cell_size * 5)
-                .attr("y1", cell_size / 2 - (d["acc_y"]) * cell_size * 5)
+                .attr("x1", cell_size / 2 - scale_x(d["acc_x"]) * cell_size * 5)
+                .attr("y1", cell_size / 2 - scale_y(d["acc_y"]) * cell_size * 5)
                 .attr("x2", cell_size / 2)
                 .attr("y2", cell_size / 2)
                 .attr("transform", "rotate(15, " + cell_size / 2 + " " + cell_size / 2 + ")")
@@ -90,8 +109,8 @@ function updateAcceleration(playerId) {
                 });
 
             cell.append("line")
-                .attr("x1", cell_size / 2 - (d["acc_x"]) * cell_size * 5)
-                .attr("y1", cell_size / 2 - (d["acc_y"]) * cell_size * 5)
+                .attr("x1", cell_size / 2 - scale_x(d["acc_x"]) * cell_size * 5)
+                .attr("y1", cell_size / 2 - scale_y(d["acc_y"]) * cell_size * 5)
                 .attr("x2", cell_size / 2)
                 .attr("y2", cell_size / 2)
                 .attr("transform", "rotate(-15, " + cell_size / 2 + " " + cell_size / 2 + ")")
@@ -109,7 +128,7 @@ function updateAcceleration(playerId) {
 }
 
 
-function updateSpeed(playerId) {
+function updateSpeed(playerId, blockSize) {
 
     d3.select("#main_panel").append("div").attr("id", "speed-wrap-div").style("position", "relative");
 
@@ -165,11 +184,11 @@ function updateSpeed(playerId) {
 
         var scale_x = d3.scale.linear()
             .domain(domain["speed_x"])
-            .range([domain["speed_x"][0] * 0.5, domain["speed_x"][1]]);
+            .range([domain["speed_x"][0] * 0.5, domain["speed_x"][1] * blockSize * 0.3]);
 
         var scale_y = d3.scale.linear()
             .domain(domain["speed_y"])
-            .range([domain["speed_y"][0] * 0.5, domain["speed_y"][1]]);
+            .range([domain["speed_y"][0] * 0.5, domain["speed_y"][1] * blockSize * 0.3]);
 
 
         cells.each(function (d, i) {

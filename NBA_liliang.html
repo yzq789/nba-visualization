@@ -354,10 +354,10 @@
         } else if (tab === 5) {
             showheatmap(0, player.id, blockSize)
         } else if (tab === 3) {
-            updateSpeed(player.id);
+            updateSpeed(player.id, blockSize);
             d3.select("li#speed").attr("class", "active");
         } else if (tab === 4) {
-            updateAcceleration(player.id);
+            updateAcceleration(player.id, blockSize);
             d3.select("li#acc").attr("class", "active");
         }
     }
