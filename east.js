@@ -21,11 +21,17 @@ function update(team, player, shots, blockSize) {
 
     points = [];
 
+    var tooltip = d3.select("body")
+        .append("div")
+        .attr("class","tooltip")
+        .style("opacity",0.0);
+
     svg = d3.select("#main_panel").append("svg")
         .attr("id", "east")
         .attr("width", 600)
         .attr("height", 400);
 
+    rate = 0;
     var updateShots = function(shots, player, team){
         if(player == undefined){
             if(team == undefined){
@@ -47,8 +53,12 @@ function update(team, player, shots, blockSize) {
             }
         }
 
-        console.log("points");
-        console.log(points);
+        var count = 0;
+        for(var i = 0;i < points.length;i++){
+            if(points[i].score)count++;
+        }
+        rate = count / points.length;
+        d3.select("#rate").text(rate.toPrecision(2) + "%");
 
         updateBlocks();
     };
@@ -104,9 +114,9 @@ function update(team, player, shots, blockSize) {
                         .domain([minRate, maxRate])
                         .range([0, 1]);
 
-        var maxColor = d3.rgb(255,0,0); //橙色
+        var maxColor = d3.rgb(255,0,0); //红色
         var minColor = d3.rgb(255,255,0); //黄色
-        var computeRateColor = d3.interpolate(maxColor, minColor);
+        var computeRateColor = d3.interpolate(minColor, maxColor);
 
         //定义投球数大小函数
         var maxNum = blockList[0][0];
@@ -139,6 +149,21 @@ function update(team, player, shots, blockSize) {
             })
             .attr("r",function(d){
                 return blockSize * linearNum(d[0]) * 1.5;
+            })
+            .on("mouseover",function(d){
+                tooltip.html("num:" + d[0] + "<br />" + "hit:" + d[1] + "<br />" + "rate:" + d.rate.toPrecision(2))
+                    .style("left", (d3.event.pageX) + "px")
+                    .style("top", (d3.event.pageY + 20) + "px")
+                    .style("opacity",1.0);
+                console.log(1111111);
+                console.log(d3.event.pageX);
+                console.log(d3.event.pageY);
+            })
+            .on("mouseout",function(d){
+                tooltip.style("left", "0px")
+                    .style("top", "0px")
+                    .style("opacity",0.0);
+                console.log("leave");
             });
     };
 
