@@ -107,7 +107,7 @@ function showheatmap(state, playerId, blockSize) {
         .range([200, 800]);
 
     var color_linear = d3.scale.linear()
-        .domain([0, scale_linear(blockSize)])    //400 is proper
+        .domain([0, scale_linear(5 - blockSize)])    //400 is proper
         .range([0, 1]);
 
     var radius = d3.scale.sqrt()
