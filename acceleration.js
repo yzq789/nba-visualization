@@ -26,7 +26,11 @@ function updateSpeedAndAcceleration(playerId) {
 function updateAcceleration(playerId, blockSize) {
 
     d3.select("#main_panel").append("div").attr("id", "acc-wrap-div").style("position", "relative");
-
+    if(currentTeamIndex == 0){
+        d3.select("#explain").text("----------------进攻方向------------------>");
+    }else{
+        d3.select("#explain").text("<---------------进攻方向-------------------");
+    }
 
     d3.select("#acc-wrap-div").append("img")
         .attr("id", "acc-court-img")
@@ -131,6 +135,14 @@ function updateAcceleration(playerId, blockSize) {
 function updateSpeed(playerId, blockSize) {
 
     d3.select("#main_panel").append("div").attr("id", "speed-wrap-div").style("position", "relative");
+
+    if(currentTeamIndex == 0){
+        d3.select("#explain").text("----------------进攻方向------------------>");
+    }else{
+        d3.select("#explain").text("<---------------进攻方向-------------------");
+    }
+
+
 
     d3.select("#speed-wrap-div").append("img")
         .attr("id", "speed-court-img")
@@ -265,7 +277,7 @@ function acc_mouseover(d, cell, cell_size) {
     var rect_layer = cell.append("g").attr("class", "rect_layer");
     var text_layer = cell.append("g").attr("class", "text_layer");
     var text_length = text_layer.append("text")
-        .attr("x", cell_size / 2)
+        .attr("x", cell_size / 2 + 3)
         .attr("y", cell_size / 2 + 3)
         .attr("dy", "1.1em")
         .attr("class", "tooltip_text")
@@ -290,7 +302,7 @@ function speed_mouseover(d, cell, cell_size) {
     var rect_layer = cell.append("g").attr("class", "rect_layer");
     var text_layer = cell.append("g").attr("class", "text_layer");
     var text_length = text_layer.append("text")
-        .attr("x", cell_size / 2)
+        .attr("x", cell_size / 2 + 3)
         .attr("y", cell_size / 2 + 3)
         .attr("dy", "1.1em")
         .attr("class", "tooltip_text")
